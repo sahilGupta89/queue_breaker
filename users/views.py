@@ -87,11 +87,11 @@ class GenerateOTP(APIView):
                 new_user.save()
                 # send otp
                 otp_status = send_otp(self.get_queryset(phone))
-                return Response({'data': otp_status}, status=status.HTTP_200_OK)
+                return Response({'data': otp_status,'success':False,'msg':'OTP sent'}, status=status.HTTP_200_OK)
             else:
-                return Response({'msg': 'Please provide phone number'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'msg': 'Please provide phone number','success':False,'data':''}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'msg': e.args}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'msg': e.args,'success':False,'data':''}, status=status.HTTP_404_NOT_FOUND)
 
 
 class VerifyOTP(APIView):
@@ -141,12 +141,12 @@ class ConsumerSignup(APIView):
                 try:
                     serializer.save()
                 except Exception as e:
-                    return Response(data={'msg': e.args}, status=status.HTTP_208_ALREADY_REPORTED)
+                    return Response(data={'msg': e.args,'success':False,'data':''}, status=status.HTTP_208_ALREADY_REPORTED)
             else:
-                return Response(data={'msg': "Please provide valid parameters"}, status=status.HTTP_400_BAD_REQUEST)
-            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+                return Response(data={'msg': "Please provide valid parameters",'success':False,'data':''}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={'data':serializer.data,'success':True,'msg':'Data saved'}, status=status.HTTP_201_CREATED)
         else:
-            return Response(data={'msg': "Already registered"}, status=status.HTTP_208_ALREADY_REPORTED)
+            return Response(data={'msg': "Already registered",'success':False,'data':''}, status=status.HTTP_208_ALREADY_REPORTED)
 
 
 class ConsumerSignin(APIView):
@@ -175,18 +175,18 @@ class ConsumerSignin(APIView):
                 otp = request.data['otp']
                 verification_status = verify_user_otp(phone, int(otp), self.get_queryset(phone))
                 if verification_status == 'done':
-                    return Response({'msg': 'Verification done'}, status=status.HTTP_200_OK)
+                    return Response({'msg': 'Verification done','success':True,'data':''}, status=status.HTTP_200_OK)
                 else:
-                    return Response(data={'msg': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+                    return Response(data={'msg': 'User not found','success':False,'data':''}, status=status.HTTP_404_NOT_FOUND)
 
                 # if "password" in request.data and user.check_password(request.data['password']):
                 #     serializer = UserSerializer(user)
                 # else:
                 #     return Response({'msg': 'Check your password', 'data': []}, status=status.HTTP_401_UNAUTHORIZED)
             else:
-                return Response({'msg': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'msg': 'User not found','success':False,'data':''}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'msg': e.args}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'msg': e.args,'success':False,'data':''}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ProviderSignup(APIView):

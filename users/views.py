@@ -79,7 +79,7 @@ class GenerateOTP(APIView):
                 # send OTP to user
                 user = self.get_queryset(phone)
                 otp_status = send_otp(user)
-                return Response({'data': otp_status}, status=status.HTTP_200_OK)
+                return Response({'data': otp_status,'success':True,'msg':'OTP sent'}, status=status.HTTP_200_OK)
             elif phone:
                 # create user
                 new_user = UserPhoneSerializer(data={'phone': phone})
@@ -87,7 +87,7 @@ class GenerateOTP(APIView):
                 new_user.save()
                 # send otp
                 otp_status = send_otp(self.get_queryset(phone))
-                return Response({'data': otp_status,'success':False,'msg':'OTP sent'}, status=status.HTTP_200_OK)
+                return Response({'data': otp_status,'success':True,'msg':'OTP sent'}, status=status.HTTP_200_OK)
             else:
                 return Response({'msg': 'Please provide phone number','success':False,'data':''}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:

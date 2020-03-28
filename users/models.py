@@ -75,8 +75,8 @@ class User(AbstractBaseUser):
 
 
 class Location(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE,related_name="users",null=True)
-    phone = models.TextField(max_length=12,blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="users", null=True)
+    # phone = models.TextField(max_length=12,blank=True)
     address = models.TextField(max_length=200, null=True, blank=True)
     street = models.TextField(max_length=200, null=True, blank=True)
     city = models.CharField(max_length=50, null=True, blank=True)
@@ -87,18 +87,18 @@ class Location(models.Model):
     lng = models.DecimalField(verbose_name='longitude', max_digits=8, decimal_places=5, default=00.00000)
 
     def __str__(self):
-        return self.phone
+        return self.user.phone
 
 
 class PhoneTokens(models.Model):
-    # user = models.ForeignKey(User, on_delete=models.CASCADE)
-    phone = models.TextField(max_length=12, null=False, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE,null=True)
+    # phone = models.TextField(max_length=12, null=False, blank=True)
     otp_sent = models.BooleanField(default=False)
     otp = models.BigIntegerField(null=True, blank=True)
     is_verified = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.phone
+        return self.user.phone
 
 
 class AccessTokens(models.Model):

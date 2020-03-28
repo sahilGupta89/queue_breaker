@@ -18,6 +18,7 @@ def get_queryset(phone):
     This view should return a list of all authenticated user.
     """
     # user = self.request.user
+    test = PhoneTokens.objects.prefetch_related('phone')
     if User.objects.filter(phone=phone).exists():
         return User.objects.get(phone=phone)
     else:
@@ -57,10 +58,11 @@ class ProviderSignup(APIView):
                     serializer.save()
                     # save location
                     location_data = {
-                        "phone":serializer.data['phone'],
+                        "user":serializer.data['id'],
+                        # "phone": serializer.data['phone'],
                         "lat": request.data['lat'],
                         "lng": request.data['lng'],
-                        "address":request.data['address']
+                        "address": request.data['address']
                     }
                     location_serializer = LocationSerializer(data=location_data)
                     if location_serializer.is_valid():
@@ -68,8 +70,8 @@ class ProviderSignup(APIView):
 
                     # save category provider mapping
                     for category in categories:
-                        pcmapping = ProviderCategoryMappingSerializer(data={\
-                            'provider':UserPhoneSerializer(get_queryset(request.data['phone'])).data['id'],
+                        pcmapping = ProviderCategoryMappingSerializer(data={
+                            'provider': serializer.data['id'],
                             'category': category
                         })
                         if pcmapping.is_valid(raise_exception=True):

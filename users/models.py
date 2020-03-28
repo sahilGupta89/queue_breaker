@@ -87,7 +87,7 @@ class Location(models.Model):
     lng = models.DecimalField(verbose_name='longitude', max_digits=8, decimal_places=5, default=00.00000)
 
     def __str__(self):
-        return self.user.phone
+        return self.lat
 
 
 class PhoneTokens(models.Model):
@@ -98,7 +98,7 @@ class PhoneTokens(models.Model):
     is_verified = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.user.phone
+        return str(self.otp)
 
 
 class AccessTokens(models.Model):

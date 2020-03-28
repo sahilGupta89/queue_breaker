@@ -25,20 +25,6 @@ from django.utils.translation import ugettext_lazy as _
 #         return self.get_id_display()
 
 
-class Location(models.Model):
-    address = models.TextField(max_length=200, null=True, blank=True)
-    street = models.TextField(max_length=200, null=True, blank=True)
-    city = models.CharField(max_length=50, null=True, blank=True)
-    state = models.CharField(max_length=50, null=True, blank=True)
-    country = models.CharField(max_length=50, null=True, blank=True)
-    zipcode = models.CharField(max_length=50, null=True, blank=True),
-    lat = models.DecimalField(verbose_name='lattitude', max_digits=8, decimal_places=5, default=00.00000)
-    long = models.DecimalField(verbose_name='longitude', max_digits=8, decimal_places=5, default=00.00000)
-
-    def __str__(self):
-        return self.state
-
-
 class User(AbstractBaseUser):
     CONSUMER = 1
     PROVIDER = 2
@@ -52,11 +38,11 @@ class User(AbstractBaseUser):
 
     phone = models.TextField(max_length=10, unique=True)
     first_name = models.CharField(max_length=20, null=True, blank=True)
-    last_name = models.CharField(max_length=20, null=True,blank=True)
-    location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
+    last_name = models.CharField(max_length=20, null=True, blank=True)
+    # location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
     birth_date = models.DateField(null=True, blank=True)
-    image = models.ImageField(upload_to='uploads/profile/',null=True,blank=True)
-    roles = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, blank=True, null=True,default=CONSUMER)
+    image = models.ImageField(upload_to='uploads/profile/', null=True, blank=True)
+    roles = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, blank=True, null=True, default=CONSUMER)
     # roles = models.ManyToManyField(Role)
     is_active = models.BooleanField(default=True)
     email = models.EmailField(null=True, blank=True)
@@ -88,9 +74,25 @@ class User(AbstractBaseUser):
         return self.first_name
 
 
+class Location(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE,related_name="users",null=True)
+    phone = models.TextField(max_length=12,blank=True)
+    address = models.TextField(max_length=200, null=True, blank=True)
+    street = models.TextField(max_length=200, null=True, blank=True)
+    city = models.CharField(max_length=50, null=True, blank=True)
+    state = models.CharField(max_length=50, null=True, blank=True)
+    country = models.CharField(max_length=50, null=True, blank=True)
+    zipcode = models.CharField(max_length=50, null=True, blank=True),
+    lat = models.DecimalField(verbose_name='lattitude', max_digits=8, decimal_places=5, default=00.00000)
+    lng = models.DecimalField(verbose_name='longitude', max_digits=8, decimal_places=5, default=00.00000)
+
+    def __str__(self):
+        return self.phone
+
+
 class PhoneTokens(models.Model):
     # user = models.ForeignKey(User, on_delete=models.CASCADE)
-    phone = models.TextField(max_length=12,null=False,blank=True)
+    phone = models.TextField(max_length=12, null=False, blank=True)
     otp_sent = models.BooleanField(default=False)
     otp = models.BigIntegerField(null=True, blank=True)
     is_verified = models.BooleanField(default=False)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 # from django.contrib.auth.models import User, Group
-from .models import User, PhoneTokens, AccessTokens
+from .models import User, PhoneTokens, AccessTokens, Location
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ProviderSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['first_name','email','phone','location','roles']
+        fields = ['first_name','email','phone','roles']
 
 
 class UserPhoneSerializer(serializers.ModelSerializer):
@@ -28,3 +28,9 @@ class PhoneTokensSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhoneTokens
         fields = ['phone', 'otp_sent', 'otp', 'is_verified']
+
+
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = "__all__"

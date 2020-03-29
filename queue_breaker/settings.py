@@ -158,7 +158,7 @@ STATIC_ROOT = os.path.join(REPOSITORY_ROOT, 'static/')
 
 MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(REPOSITORY_ROOT, 'uploads/')
-
+print(MEDIA_ROOT)
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=6),

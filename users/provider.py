@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate, login
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User, PhoneTokens
 from services_manager.serializer import ProviderCategoryMappingSerializer
-from .serializer import UserSerializer, UserPhoneSerializer, ProviderSerializer, LocationSerializer
+from .serializer import UserSerializer, PhoneTokensSerializer, UserPhoneSerializer, ProviderSerializer, LocationSerializer
 from .utils import send_otp, verify_user_otp
 
 
@@ -18,7 +18,7 @@ def get_queryset(phone):
     This view should return a list of all authenticated user.
     """
     # user = self.request.user
-    test = PhoneTokens.objects.prefetch_related('phone')
+    # test = PhoneTokens.objects.prefetch_related('phone')
     if User.objects.filter(phone=phone).exists():
         return User.objects.get(phone=phone)
     else:
@@ -108,6 +108,35 @@ class ResendOTP(APIView):
         except Exception as e:
             return Response(data={'msg': "Please Provide valid phone number", 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)
+
+
+class GenerateOTP(APIView):
+    serializer_class = PhoneTokensSerializer
+    permission_classes = ([AllowAny])
+    parser_classes = [JSONParser, ]
+
+    def post(self, request):
+        try:
+            phone = request.data['phone']
+            user = get_queryset(phone)
+            if user and phone:
+                # send OTP to user
+                user = get_queryset(phone)
+                otp_status = send_otp(user)
+                return Response({'data': otp_status, 'success': True, 'msg': 'OTP sent'}, status=status.HTTP_200_OK)
+            elif phone:
+                # create user
+                new_user = UserPhoneSerializer(data={'phone': phone})
+                new_user.is_valid(raise_exception=True)
+                new_user.save(roles=2)
+                # send otp
+                otp_status = send_otp(get_queryset(phone))
+                return Response({'data': otp_status, 'success': True, 'msg': 'OTP sent'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'msg': 'Please provide phone number', 'success': False, 'data': ''},
+                                status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'msg': e.args, 'success': False, 'data': ''}, status=status.HTTP_404_NOT_FOUND)
 
 
 # verfy otp and send signin info

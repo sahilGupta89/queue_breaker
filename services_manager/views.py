@@ -17,7 +17,7 @@ class CategoryList(APIView):
 
     def get(self, request):
         try:
-            base_url = "http://localhost:8000/api"
+            base_url = "http://35.223.14.120:8000/api"
             serializer = CategoriesSerializer(data=Categories.objects.all(), many=True)
             serializer.is_valid()
             for category in serializer.data:

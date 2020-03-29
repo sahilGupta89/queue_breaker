@@ -12,29 +12,30 @@ from .serializer import UserSerializer, PhoneTokensSerializer, UserPhoneSerializ
 from .utils import send_otp, verify_user_otp
 
 
+def get_queryset(phone):
+    """
+    This view should return a list of all authenticated user.
+    """
+    # user = self.request.user
+    if User.objects.filter(phone=phone).exists():
+        return User.objects.get(phone=phone)
+    else:
+        return None
+
+
 # check user in db if not create
 class GenerateOTP(APIView):
     serializer_class = PhoneTokensSerializer
     permission_classes = ([AllowAny])
     parser_classes = [JSONParser, ]
 
-    def get_queryset(self, phone):
-        """
-        This view should return a list of all authenticated user.
-        """
-        # user = self.request.user
-        if User.objects.filter(phone=phone).exists():
-            return User.objects.get(phone=phone)
-        else:
-            return None
-
     def post(self, request):
         try:
             phone = request.data['phone']
-            user = self.get_queryset(phone)
+            user = get_queryset(phone)
             if user and phone:
                 # send OTP to user
-                user = self.get_queryset(phone)
+                user = get_queryset(phone)
                 otp_status = send_otp(user)
                 return Response({'data': otp_status, 'success': True, 'msg': 'OTP sent'}, status=status.HTTP_200_OK)
             elif phone:
@@ -43,7 +44,7 @@ class GenerateOTP(APIView):
                 new_user.is_valid()
                 new_user.save()
                 # send otp
-                otp_status = send_otp(self.get_queryset(phone))
+                otp_status = send_otp(get_queryset(phone))
                 return Response({'data': otp_status, 'success': True, 'msg': 'OTP sent'}, status=status.HTTP_200_OK)
             else:
                 return Response({'msg': 'Please provide phone number', 'success': False, 'data': ''},
@@ -57,18 +58,11 @@ class VerifyOTP(APIView):
     permission_classes = ([AllowAny])
     parser_classes = [JSONParser, ]
 
-    def get_queryset(self, phone):
-        """
-        This view should return a list of all authenticated user.
-        """
-        # user = self.request.user
-        return User.objects.get(phone=phone)
-
     def post(self, request):
         try:
             phone = request.data['phone']
             otp = request.data['otp']
-            verification_status = verify_user_otp(phone, otp, self.get_queryset(phone))
+            verification_status = verify_user_otp(phone, otp, get_queryset(phone))
             if verification_status == 'done':
                 return Response({'msg': 'Verification done'}, status=status.HTTP_200_OK)
             else:
@@ -82,13 +76,6 @@ class ConsumerSignup(APIView):
     serializer_class = UserSerializer
     permission_classes = ([AllowAny])
     parser_classes = [JSONParser, MultiPartParser]
-
-    def get_queryset(self):
-        """
-        This view should return a list of all authenticated user.
-        """
-        # user = self.request.user
-        return User.objects.all()
 
     def post(self, request, format=None):
         if not User.objects.filter(phone=request.data['phone']).exists():
@@ -117,25 +104,15 @@ class ConsumerSignin(APIView):
     permission_classes = ([AllowAny])
     parser_classes = [JSONParser, ]
 
-    def get_queryset(self, phone):
-        """
-        This view should return a list of all authenticated user.
-        """
-        # user = self.request.user
-        if User.objects.filter(phone=phone).exists():
-            return User.objects.get(phone=phone)
-        else:
-            return None
-
     def post(self, request):
         # authenticate(request,email=request.data['phone'],password=request.data['password'])
         try:
-            user = self.get_queryset(request.data['phone'])
+            user = get_queryset(request.data['phone'])
             if user:
                 # Verify otp
                 phone = request.data['phone']
                 otp = request.data['otp']
-                verification_status = verify_user_otp(phone, int(otp), self.get_queryset(phone))
+                verification_status = verify_user_otp(phone, int(otp), get_queryset(phone))
                 if verification_status == 'done':
                     return Response({'msg': 'Verification done', 'success': True, 'data': ''},
                                     status=status.HTTP_200_OK)
@@ -152,3 +129,20 @@ class ConsumerSignin(APIView):
                                 status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'msg': e.args, 'success': False, 'data': ''}, status=status.HTTP_404_NOT_FOUND)
+
+
+class ResendOTP(APIView):
+    # name,email,phone,categorytype
+    serializer_class = UserSerializer
+    permission_classes = ([AllowAny])
+    parser_classes = [JSONParser]
+
+    def post(self, request):
+        try:
+            phone = request.data['phone']
+            otp_status = send_otp(get_queryset(phone))
+            return Response(data={'msg': "OTP sent", 'success': True, 'data': otp_status},
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(data={'msg': "Please Provide valid phone number", 'success': False, 'data': ''},
+                            status=status.HTTP_404_NOT_FOUND)

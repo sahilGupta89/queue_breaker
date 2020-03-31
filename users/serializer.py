@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ProviderSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['first_name','email','phone','roles','id']
+        fields = ['first_name', 'email', 'phone', 'roles', 'id']
 
 
 class UserPhoneSerializer(serializers.ModelSerializer):

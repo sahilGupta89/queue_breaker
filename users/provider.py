@@ -66,6 +66,9 @@ class ProviderSignup(APIView):
                     }
                     location_serializer = LocationSerializer(data=location_data)
                     if location_serializer.is_valid():
+                        # location_serializer.save()
+                        # ProviderSerializer.update(get_queryset(phone=request.data['phone']),
+                        #                         data={'location':location_serializer.data['id']})
                         location_serializer.save(user=get_queryset(request.data['phone']))
 
                     # save category provider mapping
@@ -161,3 +164,4 @@ class ProviderSignin(APIView):
         except Exception as e:
             return Response(data={'msg': e.args, 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)
+

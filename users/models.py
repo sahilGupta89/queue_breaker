@@ -25,6 +25,7 @@ from django.utils.translation import ugettext_lazy as _
 #         return self.get_id_display()
 
 
+
 class User(AbstractBaseUser):
     CONSUMER = 1
     PROVIDER = 2
@@ -41,7 +42,7 @@ class User(AbstractBaseUser):
     last_name = models.CharField(max_length=20, null=True, blank=True)
     # location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
     birth_date = models.DateField(null=True, blank=True)
-    image = models.ImageField(upload_to='uploads/profile/', null=True, blank=True)
+    image = models.ImageField(upload_to='profile/', null=True, blank=True)
     roles = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, blank=True, null=True, default=CONSUMER)
     # roles = models.ManyToManyField(Role)
     is_active = models.BooleanField(default=True)
@@ -75,7 +76,7 @@ class User(AbstractBaseUser):
 
 
 class Location(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="users", null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     # phone = models.TextField(max_length=12,blank=True)
     address = models.TextField(max_length=200, null=True, blank=True)
     street = models.TextField(max_length=200, null=True, blank=True)
@@ -87,7 +88,11 @@ class Location(models.Model):
     lng = models.DecimalField(verbose_name='longitude', max_digits=8, decimal_places=5, default=00.00000)
 
     def __str__(self):
-        return self.lat
+        return str(self.lat)
+
+    def __unicode__(self):
+        return (self.lat,self.lng)
+
 
 
 class PhoneTokens(models.Model):

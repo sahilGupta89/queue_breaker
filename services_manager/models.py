@@ -6,6 +6,7 @@ from users.models import User
 class Categories(models.Model):
     name = models.CharField(max_length=50, blank=False, null=False)
     image = models.ImageField(upload_to='catagories/', null=True, blank=True)
+    subcategories = models.ManyToManyField('self', symmetrical=False,null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(blank=True, null=True)
     deleted = models.BooleanField(default=False)

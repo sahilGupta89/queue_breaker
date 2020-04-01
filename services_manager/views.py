@@ -71,35 +71,31 @@ class FetchProvidersByCategory(APIView):
             category_id = kwargs['category_id']
 
             queryset = User.objects.filter(providercategorymapping__category__id=category_id)
+            if len(queryset)!=0:
+                data_to_send= dict()
+                _category = queryset[0].providercategorymapping_set.filter(category_id=category_id)
+                if len(_category)!= 0:
+                    _catetory_serializer = CategoriesSerializer(_category.category)
+                    data_to_send.update({'category':_catetory_serializer.data})
+                    data_to_send['category'].update({
+                        'image': base_url + data_to_send['category']['image'],
+                        'providers':list()
+                    })
 
-            data_to_send= dict()
-            _catetory = queryset[0].providercategorymapping_set.filter(category_id=category_id)[0]
-            _catetory_serializer = CategoriesSerializer(_catetory.category)
-            data_to_send.update({'category':_catetory_serializer.data})
-            data_to_send['category'].update({
-                'image': base_url + data_to_send['category']['image'],
-                'providers':list()
-            })
+                    for d in queryset:
+                        provider_dict = dict()
+                        provider_dict.update(UserSerializer(d).data)
+                        provider_dict.update({'location':LocationSerializer(d.location_set.all()[0]).data})
+                        data_to_send['category']['providers'].append(provider_dict)
 
-            for d in queryset:
-                provider_dict = dict()
-                provider_dict.update(UserSerializer(d).data)
-                provider_dict.update({'location':LocationSerializer(d.location_set.all()[0]).data})
-                data_to_send['category']['providers'].append(provider_dict)
-
-                # if "category"  in data_to_send and _catetory_serializer.data['name'] and data_to_send['category']['name']==_catetory_serializer.data['name']:
-                #     _provider_serializer = UserSerializer(d)
-                #     _location_serializer = LocationSerializer(d.location_set.all()[0])
-                #     _provider_serializer.data['location'] = _location_serializer.data
-                #     data_to_send['category']['providers'].append(_provider_serializer.data)
-                # else:
-                #     _provider_serializer = UserSerializer(d)
-                #     _location_serializer = LocationSerializer(d.location_set.all()[0])
-                #     _provider_serializer.data['location'] = _location_serializer.data
-                #     _catetory_serializer.data.update({'providers':[_provider_serializer.data]})
-                #     data_to_send = {'category':_catetory_serializer.data,'providers':[_provider_serializer.data]}
-            return Response(data={'msg': "Retrived data", 'success': True, 'data': data_to_send},
-                                status=status.HTTP_200_OK)
+                    return Response(data={'msg': "Retrived data", 'success': True, 'data': data_to_send},
+                                    status=status.HTTP_200_OK)
+                else:
+                    return Response(data={'msg': "Category not found", 'success': False, 'data': ''},
+                            status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response(data={'msg': "User not found", 'success': False, 'data': ''},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response(data={'msg': e.args, 'success': False, 'data': ''},
+            return Response(data={'msg': "Data not found", 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)

@@ -10,10 +10,7 @@ from .serializer import CategoriesSerializer, ProviderCategoryMappingSerializer
 from users.serializer import UserSerializer,LocationSerializer
 from .models import Categories,ProviderCategoryMapping,ProvidersTimeSlot,ConsumerTimeSlotMapping
 from users.models import User
-from django.conf import settings
-from django.db.models import Prefetch
-import json
-from django.forms.models import model_to_dict
+from common_utils import distance
 
 base_url = "http://35.223.14.120:8000/api"
 
@@ -62,6 +59,7 @@ class CategoryImage(APIView):
 
 
 class FetchProvidersByCategory(APIView):
+    # distance('53.32055555555556','-1.7297222222222221','53.32055555555556','-1.6997222222222223')
     serializer_class = ProviderCategoryMappingSerializer
     permission_classes = ([AllowAny])
     parser_classes = [JSONParser, ]
@@ -75,18 +73,18 @@ class FetchProvidersByCategory(APIView):
                 data_to_send= dict()
                 _category = queryset[0].providercategorymapping_set.filter(category_id=category_id)
                 if len(_category)!= 0:
-                    _catetory_serializer = CategoriesSerializer(_category.category)
+                    _catetory_serializer = CategoriesSerializer(_category[0].category)
                     data_to_send.update({'category':_catetory_serializer.data})
                     data_to_send['category'].update({
-                        'image': base_url + data_to_send['category']['image'],
-                        'providers':list()
+                        'image': base_url + data_to_send['category']['image']
                     })
+                    data_to_send.update({'providers':[]})
 
                     for d in queryset:
                         provider_dict = dict()
                         provider_dict.update(UserSerializer(d).data)
                         provider_dict.update({'location':LocationSerializer(d.location_set.all()[0]).data})
-                        data_to_send['category']['providers'].append(provider_dict)
+                        data_to_send['providers'].append(provider_dict)
 
                     return Response(data={'msg': "Retrived data", 'success': True, 'data': data_to_send},
                                     status=status.HTTP_200_OK)

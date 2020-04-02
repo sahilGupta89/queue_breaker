@@ -95,5 +95,6 @@ class FetchProvidersByCategory(APIView):
                 return Response(data={'msg': "User not found", 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
+            print('error>>>>>>>>>',e.args)
             return Response(data={'msg': "Data not found", 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)

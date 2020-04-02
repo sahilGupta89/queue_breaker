@@ -25,7 +25,6 @@ from django.utils.translation import ugettext_lazy as _
 #         return self.get_id_display()
 
 
-
 class User(AbstractBaseUser):
     CONSUMER = 1
     PROVIDER = 2
@@ -84,26 +83,22 @@ class Location(models.Model):
     state = models.CharField(max_length=50, null=True, blank=True)
     country = models.CharField(max_length=50, null=True, blank=True)
     zipcode = models.CharField(max_length=50, null=True, blank=True),
-    lat = models.DecimalField(verbose_name='lattitude', max_digits=8, decimal_places=5, default=00.00000)
-    lng = models.DecimalField(verbose_name='longitude', max_digits=8, decimal_places=5, default=00.00000)
+    lat = models.DecimalField(verbose_name='lattitude', max_digits=12, decimal_places=5, default=00.00000)
+    lng = models.DecimalField(verbose_name='longitude', max_digits=12, decimal_places=5, default=00.00000)
 
     def __str__(self):
-        return str(self.lat)
-
-    def __unicode__(self):
-        return (self.lat,self.lng)
-
+        return self.user
 
 
 class PhoneTokens(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE,null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     # phone = models.TextField(max_length=12, null=False, blank=True)
     otp_sent = models.BooleanField(default=False)
     otp = models.BigIntegerField(null=True, blank=True)
     is_verified = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.otp)
+        return str(self.user)
 
 
 class AccessTokens(models.Model):
@@ -113,3 +108,4 @@ class AccessTokens(models.Model):
 
     def __str__(self):
         return self.user
+

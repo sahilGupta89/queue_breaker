@@ -24,7 +24,7 @@ class ProvidersTimeSlot(models.Model):
     deleted = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.provider.phone
+        return self.provider
 
 
 class ProviderCategoryMapping(models.Model):

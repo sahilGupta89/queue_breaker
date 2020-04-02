@@ -165,3 +165,4 @@ class ProviderSignin(APIView):
             return Response(data={'msg': e.args, 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)
 
+

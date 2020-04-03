@@ -8,8 +8,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.contrib.auth import authenticate, login
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User, PhoneTokens
-from services_manager.serializer import ProviderCategoryMappingSerializer
-from .serializer import UserSerializer, PhoneTokensSerializer, UserPhoneSerializer, ProviderSerializer, LocationSerializer
+from services_manager.serializer import ProviderCategoryMappingSerializer, ProvidersTimeSlotSerializer
+from .serializer import UserSerializer, PhoneTokensSerializer, UserPhoneSerializer, ProviderSerializer, \
+    LocationSerializer
 from .utils import send_otp, verify_user_otp
 
 
@@ -57,8 +58,8 @@ class ProviderSignup(APIView):
                 try:
                     serializer.save()
                     # save location
-                    location_data = {
-                        "user":serializer.data['id'],
+                    location_data =  {
+                        "user": serializer.data['id'],
                         # "phone": serializer.data['phone'],
                         "lat": request.data['lat'],
                         "lng": request.data['lng'],
@@ -166,3 +167,27 @@ class ProviderSignin(APIView):
                             status=status.HTTP_404_NOT_FOUND)
 
 
+class AddTimeSlot(APIView):
+    serializer_class = UserSerializer
+    permission_classes = ([AllowAny])
+    parser_classes = [JSONParser]
+
+    def post(self, request):
+        try:
+            working_days = request.data['working_days'].split(',')
+            data_to_save = list()
+            for day in working_days:
+                data_to_save.append({
+                    'provider': request.data['provider_id'],
+                    'day': day,
+                    'start_time': request.data['start_time'],
+                    'end_time': request.data['end_time']
+                })
+            serializer = ProvidersTimeSlotSerializer(data=data_to_save, many=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(data={'msg': "Data saved", 'success': True, 'data': serializer.data},
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(data={'msg': e.args, 'success': False, 'data': ''},
+                            status=status.HTTP_404_NOT_FOUND)

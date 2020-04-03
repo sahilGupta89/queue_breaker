@@ -19,6 +19,7 @@ class ProvidersTimeSlot(models.Model):
     provider = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
     start_time = models.DateTimeField(verbose_name='service start time')
     end_time = models.DateTimeField(verbose_name='service end time')
+    day = models.CharField(verbose_name='days of week',max_length=10, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(blank=True, null=True)
     deleted = models.BooleanField(default=False)

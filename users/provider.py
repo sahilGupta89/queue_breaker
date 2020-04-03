@@ -4,10 +4,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.hashers import make_password
 from rest_framework.parsers import JSONParser, MultiPartParser
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken,AccessToken
 from django.contrib.auth import authenticate, login
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import User, PhoneTokens
+from .models import User, PhoneTokens,Location
 from services_manager.serializer import ProviderCategoryMappingSerializer, ProvidersTimeSlotSerializer
 from .serializer import UserSerializer, PhoneTokensSerializer, UserPhoneSerializer, ProviderSerializer, \
     LocationSerializer
@@ -142,7 +143,7 @@ class GenerateOTP(APIView):
         except Exception as e:
             return Response({'msg': e.args, 'success': False, 'data': ''}, status=status.HTTP_404_NOT_FOUND)
 
-
+import  json
 # verfy otp and send signin info
 class ProviderSignin(APIView):
     serializer_class = UserSerializer
@@ -151,12 +152,20 @@ class ProviderSignin(APIView):
 
     def post(self, request):
         try:
-            phone = request.data['phone']
             otp = request.data['otp']
             phone = request.data['phone']
+            current_user = ProviderSerializer(get_queryset(phone))
             verification_status = verify_user_otp(phone, otp, get_queryset(phone))
             if verification_status == "done":
-                return Response(data={'msg': "Successfully signed in", 'success': True, 'data': verification_status},
+                # TokenObtainPairView.get_object()
+                # tokens = RefreshToken.for_user(get_queryset(phone))
+                data_to_send = dict()
+                data_to_send.update({"user": current_user.data})
+                data_to_send['user'].update({
+                    "verification_status": verification_status,
+                    "location": LocationSerializer(Location.objects.get(user=current_user.data['id'])).data
+                })
+                return Response(data={'msg': "Successfully signed in", 'success': True, 'data': data_to_send},
                                 status=status.HTTP_200_OK)
             else:
                 return Response(data={'msg': "Invalid OTP", 'success': False, 'data': ''},
@@ -191,3 +200,14 @@ class AddTimeSlot(APIView):
         except Exception as e:
             return Response(data={'msg': e.args, 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)
+
+
+class UpdateServiceStatus(APIView):
+    # is_active
+    def put(self, request):
+        try:
+            service_status = request.data['service_status']
+            # serializer = ProviderSerializer()
+            return 2
+        except Exception as e:
+            return 1

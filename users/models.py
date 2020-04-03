@@ -87,7 +87,7 @@ class Location(models.Model):
     lng = models.DecimalField(verbose_name='longitude', max_digits=12, decimal_places=5, default=00.00000)
 
     def __str__(self):
-        return self.user
+        return self.user.phone
 
 
 class PhoneTokens(models.Model):

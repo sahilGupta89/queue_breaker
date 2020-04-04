@@ -2,11 +2,11 @@ import random
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import FileResponse, HttpResponse
-from rest_framework import status, serializers
+from rest_framework import status
 from django.contrib.auth.hashers import make_password
 from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializer import CategoriesSerializer, ProviderCategoryMappingSerializer
+from .serializer import CategoriesSerializer, ProviderCategoryMappingSerializer,ProvidersTimeSlotSerializer
 from users.serializer import UserSerializer, LocationSerializer
 from .models import Categories, ProviderCategoryMapping, ProvidersTimeSlot, ConsumerTimeSlotMapping
 from users.models import User
@@ -98,5 +98,20 @@ class FetchProvidersByCategory(APIView):
                                 status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             print('error>>>>>>>>>', e.args)
+            return Response(data={'msg': "Data not found", 'success': False, 'data': ''},
+                            status=status.HTTP_404_NOT_FOUND)
+
+
+class FetchAvailableTimeSlot(APIView):
+    '''
+    Fetch Available Time slot filter by provider category, location, morning,evening
+    '''
+    def get(self,request):
+        try:
+            data_to_send = dict()
+            serialzier = User
+            Response(data={'msg': "Retrieved data", 'success': True, 'data': data_to_send},
+                     status=status.HTTP_200_OK)
+        except Exception as e:
             return Response(data={'msg': "Data not found", 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)

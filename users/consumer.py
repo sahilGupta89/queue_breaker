@@ -8,6 +8,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.contrib.auth import authenticate, login
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User, PhoneTokens
+from services_manager.models import ConsumerTimeSlotMapping
+from services_manager.serializer import ConsumerTimeSlotMappingSerializer
 from .serializer import UserSerializer, PhoneTokensSerializer, UserPhoneSerializer
 from .utils import send_otp, verify_user_otp
 
@@ -145,4 +147,20 @@ class ResendOTP(APIView):
                             status=status.HTTP_200_OK)
         except Exception as e:
             return Response(data={'msg': "Please Provide valid phone number", 'success': False, 'data': ''},
+                            status=status.HTTP_404_NOT_FOUND)
+
+
+class BookTimeSlot(APIView):
+    def post(self,request):
+        try:
+            consumer_id = request.data['consumer_id']
+            time_slot_id = request.data['time_slot_id']
+            data_to_save=dict()
+            serializer = ConsumerTimeSlotMappingSerializer(data=data_to_save)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(data={'msg': "Booking done", 'success': True, 'data': serializer.data},
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(data={'msg': "Please Provide valid data", 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)

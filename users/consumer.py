@@ -151,11 +151,17 @@ class ResendOTP(APIView):
 
 
 class BookTimeSlot(APIView):
-    def post(self,request):
+    permission_classes = ([AllowAny])
+
+    def post(self, request):
         try:
-            consumer_id = request.data['consumer_id']
-            time_slot_id = request.data['time_slot_id']
-            data_to_save=dict()
+            consumer_id = None if "consumer_id" not in request.data else request.data['consumer_id']
+            time_slot_id = None if "time_slot_id" not in request.data else request.data['time_slot_id']
+            data_to_save = dict()
+            data_to_save.update({
+                "consumer": consumer_id,
+                "time_slot": time_slot_id
+            })
             serializer = ConsumerTimeSlotMappingSerializer(data=data_to_save)
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -163,4 +169,22 @@ class BookTimeSlot(APIView):
                             status=status.HTTP_200_OK)
         except Exception as e:
             return Response(data={'msg': "Please Provide valid data", 'success': False, 'data': ''},
+                            status=status.HTTP_404_NOT_FOUND)
+
+
+class FetchBooking(APIView):
+    permission_classes = ([AllowAny])
+
+    def get(self, request):
+        try:
+            consumer_id = request.query_params['consumer_id']
+            # phone = None if "phone" not in request.query_params else request.query_params['phone']
+            queryset = ConsumerTimeSlotMapping.objects.select_related('time_slot','consumer').filter(consumer__id__contains=consumer_id)
+            serializer = ConsumerTimeSlotMappingSerializer(queryset, many=True)
+            # user_detail = get_queryset(phone)
+
+            return Response(data={'msg': "Retrieved  data", 'success': True, 'data': serializer.data},
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(data={'msg': "Data not found", 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)

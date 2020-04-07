@@ -204,10 +204,35 @@ class AddTimeSlot(APIView):
 
 class UpdateServiceStatus(APIView):
     # is_active
+    permission_classes = ([AllowAny])
     def put(self, request):
         try:
             service_status = request.data['service_status']
-            # serializer = ProviderSerializer()
-            return 2
+            provider_id = request.data['provider_id']
+            phone = request.data['phone']
+            serializer = ProviderSerializer(User.objects.get(id=provider_id),data={
+                'is_active':service_status,
+                'phone':phone
+            })
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(data={'msg': "Data saved", 'success': True, 'data': serializer.data},
+                            status=status.HTTP_200_OK)
         except Exception as e:
-            return 1
+            return Response(data={'msg': e.args, 'success': False, 'data': ''},
+                            status=status.HTTP_404_NOT_FOUND)
+
+# class FetchBooking(APIView):
+#     permission_classes = ([AllowAny])
+#
+#     def get(self, request):
+#         try:
+#             phone = None if "phone" not in request.query_params else request.query_params['phone']
+#             serializer = ConsumerTimeSlotMappingSerializer(ConsumerTimeSlotMapping.objects.filter(consumer__phone = phone),many=True)
+#             # user_detail = get_queryset(phone)
+#
+#             return Response(data={'msg': "Retrieved  data", 'success': True, 'data': serializer.data},
+#                             status=status.HTTP_200_OK)
+#         except Exception as e:
+#             return Response(data={'msg': "Data not found", 'success': False, 'data': ''},
+#                             status=status.HTTP_404_NOT_FOUND)

@@ -11,15 +11,26 @@ from users.serializer import UserSerializer, LocationSerializer
 from .models import Categories, ProviderCategoryMapping, ProvidersTimeSlot, ConsumerTimeSlotMapping
 from users.models import User
 from common_utils import distance
+from django.db.models import Prefetch, Count
 
 base_url = "http://35.223.14.120:8000/api"
 
 
 def get_queryset(role, phone, user_id):
     if user_id and role:
-        return UserSerializer(id=user_id, roles=role)
+        return User.objects.filter(id=user_id, roles=2).prefetch_related(
+            'location_set',
+            'providertimeslots',
+            'providercategorymappings',
+            'consumertimeslots'
+        )
     if role and phone:
-        return UserSerializer(phone=phone, roles=role)
+        return User.objects.filter(phone=phone,roles=2).prefetch_related(
+            'location_set',
+            'providertimeslots',
+            'providercategorymappings',
+            'consumertimeslots'
+        )
 
 
 class CategoryList(APIView):
@@ -103,15 +114,28 @@ class FetchProvidersByCategory(APIView):
 
 
 class FetchAvailableTimeSlot(APIView):
-    '''
+    """
+    TODO
     Fetch Available Time slot filter by provider category, location, morning,evening
-    '''
-    def get(self,request):
+     availability will be decided based on number of consumers have bookings ,
+     will check the limit
+    """
+    serializer_class = ProvidersTimeSlotSerializer
+    permission_classes = ([AllowAny])
+    parser_classes = [JSONParser, ]
+
+    def get(self, request):
         try:
-            data_to_send = dict()
-            serialzier = User
-            Response(data={'msg': "Retrieved data", 'success': True, 'data': data_to_send},
+            phone = None if "phone" not in request.query_params else request.query_params['phone']
+            user_id = None if "user_id" not in request.query_params else request.query_params['user_id']
+            user_related_data = get_queryset(role=2, phone=phone, user_id=user_id)
+            provider_time_slots = user_related_data[0].providertimeslots.values()
+            # get count of consumers who have booked the slot
+            data_to_send = provider_time_slots
+            # serialzier = User
+            return Response(data={'msg': "Retrieved data", 'success': True, 'data': data_to_send},
                      status=status.HTTP_200_OK)
         except Exception as e:
             return Response(data={'msg': "Data not found", 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)
+

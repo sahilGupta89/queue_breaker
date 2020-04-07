@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import ProviderCategoryMapping, Categories, ProvidersTimeSlot,ConsumerTimeSlotMapping
-
+from users.serializer import UserSerializer
 
 class CategoriesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,6 +25,9 @@ class ProvidersTimeSlotSerializer(serializers.ModelSerializer):
 
 
 class ConsumerTimeSlotMappingSerializer(serializers.ModelSerializer):
+    consumer = UserSerializer()
+    time_slot = ProvidersTimeSlotSerializer()
+
     class Meta:
         model = ConsumerTimeSlotMapping
         fields = "__all__"

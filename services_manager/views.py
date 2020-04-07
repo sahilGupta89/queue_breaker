@@ -81,10 +81,10 @@ class FetchProvidersByCategory(APIView):
             # fetch provider with categories
             category_id = kwargs['category_id']
 
-            queryset = User.objects.filter(providercategorymapping__category__id=category_id)
+            queryset = User.objects.filter(providercategorymappings__category__id=category_id)
             if len(queryset) != 0:
                 data_to_send = dict()
-                _category = queryset[0].providercategorymapping_set.filter(category_id=category_id)
+                _category = queryset[0].providercategorymappings.filter(category_id=category_id)
                 if len(_category) != 0:
                     _category_serializer = CategoriesSerializer(_category[0].category)
                     data_to_send.update({'category': _category_serializer.data})

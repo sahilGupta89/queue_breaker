@@ -7,10 +7,10 @@ from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.contrib.auth import authenticate, login
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import User, PhoneTokens
+from .models import User, PhoneTokens, Location
 from services_manager.models import ConsumerTimeSlotMapping
 from services_manager.serializer import ConsumerTimeSlotMappingSerializer
-from .serializer import UserSerializer, PhoneTokensSerializer, UserPhoneSerializer
+from .serializer import UserSerializer, PhoneTokensSerializer, UserPhoneSerializer,LocationSerializer
 from .utils import send_otp, verify_user_otp
 
 
@@ -87,6 +87,9 @@ class ConsumerSignup(APIView):
             if serializer.is_valid():
                 try:
                     serializer.save()
+                    location_serializer = LocationSerializer(data={"user":serializer.data['id']})
+                    location_serializer.is_valid(raise_exception=True)
+                    location_serializer.save()
                 except Exception as e:
                     return Response(data={'msg': e.args, 'success': False, 'data': ''},
                                     status=status.HTTP_208_ALREADY_REPORTED)
@@ -109,14 +112,21 @@ class ConsumerSignin(APIView):
     def post(self, request):
         # authenticate(request,email=request.data['phone'],password=request.data['password'])
         try:
-            user = get_queryset(request.data['phone'])
+            user = UserSerializer(get_queryset(request.data['phone']))
             if user:
                 # Verify otp
                 phone = request.data['phone']
                 otp = request.data['otp']
                 verification_status = verify_user_otp(phone, int(otp), get_queryset(phone))
+
                 if verification_status == 'done':
-                    return Response({'msg': 'Verification done', 'success': True, 'data': ''},
+                    data_to_send = dict()
+                    data_to_send.update({"user": user.data})
+                    data_to_send['user'].update({
+                        "verification_status": verification_status,
+                        "location": LocationSerializer(Location.objects.get(user=user.data['id'])).data
+                    })
+                    return Response({'msg': 'Verification done', 'success': True, 'data': data_to_send},
                                     status=status.HTTP_200_OK)
                 else:
                     return Response(data={'msg': 'User not found', 'success': False, 'data': ''},

@@ -108,4 +108,3 @@ class AccessTokens(models.Model):
 
     def __str__(self):
         return self.user
-

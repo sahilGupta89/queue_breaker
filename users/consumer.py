@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.hashers import make_password
 from rest_framework.parsers import JSONParser, MultiPartParser
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken, Token
 from django.contrib.auth import authenticate, login
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User, PhoneTokens, Location
@@ -126,6 +126,12 @@ class ConsumerSignin(APIView):
                         "verification_status": verification_status,
                         "location": LocationSerializer(Location.objects.get(user=user.data['id'])).data
                     })
+
+                    new_token = RefreshToken.for_user(get_queryset(phone))
+                    data_to_send.update({
+                        'refresh_token': str(new_token),
+                        'access_token': str(new_token.access_token),
+                    })
                     return Response({'msg': 'Verification done', 'success': True, 'data': data_to_send},
                                     status=status.HTTP_200_OK)
                 else:
@@ -161,7 +167,7 @@ class ResendOTP(APIView):
 
 
 class BookTimeSlot(APIView):
-    permission_classes = ([AllowAny])
+    permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
@@ -183,7 +189,7 @@ class BookTimeSlot(APIView):
 
 
 class FetchBooking(APIView):
-    permission_classes = ([AllowAny])
+    permission_classes = ([IsAuthenticated])
 
     def get(self, request):
         try:

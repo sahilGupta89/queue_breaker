@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from .models import ProviderCategoryMapping, Categories, ProvidersTimeSlot,ConsumerTimeSlotMapping
+from .models import ProviderCategoryMapping, Categories, ProvidersTimeSlot, \
+    ConsumerTimeSlotMapping, AppVersion, Notifications
 from users.serializer import UserSerializer
+
 
 class CategoriesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,4 +32,20 @@ class ConsumerTimeSlotMappingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConsumerTimeSlotMapping
+        fields = "__all__"
+
+
+class AppVersionSerializer(serializers.ModelSerializer):
+    # user = UserSerializer()
+
+    class Meta:
+        model = AppVersion
+        fields = "__all__"
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    # user = UserSerializer()
+
+    class Meta:
+        model = Notifications
         fields = "__all__"

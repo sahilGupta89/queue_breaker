@@ -1,17 +1,16 @@
-import random
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.http import FileResponse, HttpResponse
+from django.http import FileResponse
 from rest_framework import status
-from django.contrib.auth.hashers import make_password
-from rest_framework.parsers import JSONParser, MultiPartParser
+from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializer import CategoriesSerializer, ProviderCategoryMappingSerializer,ProvidersTimeSlotSerializer
-from users.serializer import UserSerializer, LocationSerializer
-from .models import Categories, ProviderCategoryMapping, ProvidersTimeSlot, ConsumerTimeSlotMapping
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from users.models import User
-from common_utils import distance
-from django.db.models import Prefetch, Count
+from users.serializer import UserSerializer, LocationSerializer
+from .models import Categories, Notifications, AppVersion
+from .serializer import CategoriesSerializer, ProviderCategoryMappingSerializer, ProvidersTimeSlotSerializer, \
+    AppVersionSerializer, NotificationSerializer
+from django.utils.timezone import now
 
 base_url = "http://35.223.14.120:8000/api"
 
@@ -25,7 +24,7 @@ def get_queryset(role, phone, user_id):
             'consumertimeslots'
         )
     if role and phone:
-        return User.objects.filter(phone=phone,roles=2).prefetch_related(
+        return User.objects.filter(phone=phone, roles=2).prefetch_related(
             'location_set',
             'providertimeslots',
             'providercategorymappings',
@@ -73,7 +72,7 @@ class CategoryImage(APIView):
 class FetchProvidersByCategory(APIView):
     # distance('53.32055555555556','-1.7297222222222221','53.32055555555556','-1.6997222222222223')
     serializer_class = ProviderCategoryMappingSerializer
-    permission_classes = ([AllowAny])
+    permission_classes = ([IsAuthenticated])
     parser_classes = [JSONParser, ]
 
     def get(self, request, **kwargs):
@@ -121,21 +120,103 @@ class FetchAvailableTimeSlot(APIView):
      will check the limit
     """
     serializer_class = ProvidersTimeSlotSerializer
-    permission_classes = ([AllowAny])
+    permission_classes = ([IsAuthenticated])
     parser_classes = [JSONParser, ]
 
-    def get(self, request):
+    def post(self, request):
         try:
-            phone = None if "phone" not in request.query_params else request.query_params['phone']
-            user_id = None if "user_id" not in request.query_params else request.query_params['user_id']
+            phone = None if "phone" not in request.data else request.data['phone']
+            user_id = None if "user_id" not in request.data else request.data['user_id']
             user_related_data = get_queryset(role=2, phone=phone, user_id=user_id)
             provider_time_slots = user_related_data[0].providertimeslots.values()
             # get count of consumers who have booked the slot
             data_to_send = provider_time_slots
             # serialzier = User
             return Response(data={'msg': "Retrieved data", 'success': True, 'data': data_to_send},
-                     status=status.HTTP_200_OK)
+                            status=status.HTTP_200_OK)
         except Exception as e:
             return Response(data={'msg': "Data not found", 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)
 
+
+class UserNotifications(APIView):
+    permission_classes = ([AllowAny])
+
+    def post(self, request):
+        try:
+            serializer = NotificationSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(data={'msg': "Notification saved", 'success': True, 'data': serializer.data},
+                            status=status.HTTP_200_OK)
+        except Exception as exc:
+            return Response(data={'msg': "Invalid Data", 'success': False, 'data': ''},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    def put(self, request):
+        try:
+            instance = Notifications.objects.get(id=request.data['id'])
+            data_to_update = request.data
+            data_to_update.update({
+                "updated": now()
+            })
+            serializer = NotificationSerializer(instance, data=data_to_update)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(data={'msg': "Notification updated", 'success': True, 'data': serializer.data},
+                            status=status.HTTP_200_OK)
+        except Exception as exe:
+            return Response(data={'msg': "Invalid Data", 'success': False, 'data': ''},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    def get(self, request):
+        try:
+            instance = Notifications.objects.filter(user=request.query_params['user_id'])
+            serializer = NotificationSerializer(instance, many=True)
+
+            return Response(data={'msg': "Retrieved notifications", 'success': True, 'data': serializer.data},
+                            status=status.HTTP_200_OK)
+        except Exception as exe:
+            return Response(data={'msg': "Notification not found", 'success': False, 'data': ''},
+                            status=status.HTTP_404_NOT_FOUND)
+
+
+class UserAppVersion(APIView):
+    permission_classes = ([AllowAny])
+
+    def post(self, request):
+        try:
+            serializer = AppVersionSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(data={'msg': "Appversion saved", 'success': True, 'data': serializer.data},
+                            status=status.HTTP_200_OK)
+        except Exception as exe:
+            return Response(data={'msg': "Invalid Data", 'success': False, 'data': ''},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    def put(self, request):
+        try:
+            instance = AppVersion.objects.get(id=request.data['id'])
+            data_to_update = request.data
+            data_to_update.update({
+                "last_updated": now()
+            })
+            serializer = AppVersionSerializer(instance, data=data_to_update)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(data={'msg': "Notification updated", 'success': True, 'data': serializer.data},
+                            status=status.HTTP_200_OK)
+        except Exception as exe:
+            return Response(data={'msg': "Invalid Data", 'success': False, 'data': ''},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    def get(self, request):
+        try:
+            instance = AppVersion.objects.get(user=request.query_params['user_id'])
+            serializer = AppVersionSerializer(instance)
+            return Response(data={'msg': "Retrieved appversion", 'success': True, 'data': serializer.data},
+                            status=status.HTTP_200_OK)
+        except Exception as exe:
+            return Response(data={'msg': "appversion not found", 'success': False, 'data': ''},
+                            status=status.HTTP_404_NOT_FOUND)

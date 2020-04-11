@@ -4,9 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.hashers import make_password
 from rest_framework.parsers import JSONParser, MultiPartParser
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.tokens import RefreshToken,AccessToken
-from django.contrib.auth import authenticate, login
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken, Token
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User, PhoneTokens,Location
 from services_manager.serializer import ProviderCategoryMappingSerializer, ProvidersTimeSlotSerializer
@@ -165,6 +163,11 @@ class ProviderSignin(APIView):
                     "verification_status": verification_status,
                     "location": LocationSerializer(Location.objects.get(user=current_user.data['id'])).data
                 })
+                new_token = RefreshToken.for_user(get_queryset(phone))
+                data_to_send.update({
+                    'refresh_token': str(new_token),
+                    'access_token': str(new_token.access_token),
+                })
                 return Response(data={'msg': "Successfully signed in", 'success': True, 'data': data_to_send},
                                 status=status.HTTP_200_OK)
             else:
@@ -178,7 +181,7 @@ class ProviderSignin(APIView):
 
 class AddTimeSlot(APIView):
     serializer_class = UserSerializer
-    permission_classes = ([AllowAny])
+    permission_classes = ([IsAuthenticated])
     parser_classes = [JSONParser]
 
     def post(self, request):
@@ -190,7 +193,8 @@ class AddTimeSlot(APIView):
                     'provider': request.data['provider_id'],
                     'day': day,
                     'start_time': request.data['start_time'],
-                    'end_time': request.data['end_time']
+                    'end_time': request.data['end_time'],
+                    'home_delivery': request.data['home_delivery']
                 })
             serializer = ProvidersTimeSlotSerializer(data=data_to_save, many=True)
             serializer.is_valid(raise_exception=True)
@@ -204,7 +208,8 @@ class AddTimeSlot(APIView):
 
 class UpdateServiceStatus(APIView):
     # is_active
-    permission_classes = ([AllowAny])
+    permission_classes = ([IsAuthenticated])
+
     def put(self, request):
         try:
             service_status = request.data['service_status']

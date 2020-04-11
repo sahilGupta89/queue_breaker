@@ -72,7 +72,7 @@ class CategoryImage(APIView):
 class FetchProvidersByCategory(APIView):
     # distance('53.32055555555556','-1.7297222222222221','53.32055555555556','-1.6997222222222223')
     serializer_class = ProviderCategoryMappingSerializer
-    permission_classes = ([IsAuthenticated])
+    permission_classes = ([AllowAny])
     parser_classes = [JSONParser, ]
 
     def get(self, request, **kwargs):
@@ -120,7 +120,7 @@ class FetchAvailableTimeSlot(APIView):
      will check the limit
     """
     serializer_class = ProvidersTimeSlotSerializer
-    permission_classes = ([IsAuthenticated])
+    permission_classes = ([AllowAny])
     parser_classes = [JSONParser, ]
 
     def post(self, request):

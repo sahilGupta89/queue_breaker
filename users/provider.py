@@ -181,7 +181,7 @@ class ProviderSignin(APIView):
 
 class AddTimeSlot(APIView):
     serializer_class = UserSerializer
-    permission_classes = ([IsAuthenticated])
+    permission_classes = ([AllowAny])
     parser_classes = [JSONParser]
 
     def post(self, request):
@@ -208,7 +208,7 @@ class AddTimeSlot(APIView):
 
 class UpdateServiceStatus(APIView):
     # is_active
-    permission_classes = ([IsAuthenticated])
+    permission_classes = ([AllowAny])
 
     def put(self, request):
         try:

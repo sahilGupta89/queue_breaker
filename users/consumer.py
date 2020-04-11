@@ -167,7 +167,7 @@ class ResendOTP(APIView):
 
 
 class BookTimeSlot(APIView):
-    permission_classes = ([IsAuthenticated])
+    permission_classes = ([AllowAny])
 
     def post(self, request):
         try:
@@ -189,7 +189,7 @@ class BookTimeSlot(APIView):
 
 
 class FetchBooking(APIView):
-    permission_classes = ([IsAuthenticated])
+    permission_classes = ([AllowAny])
 
     def get(self, request):
         try:

@@ -30,7 +30,7 @@ def divideIntoTimeSlots(interval, data_dict):
     day = data_dict['day']
     home_delivery = data_dict['home_delivery']
     timeslot = []
-    while start <= end:
+    while start < end:
 
         timeslot.append({
             "start": start,

@@ -11,6 +11,7 @@ from .models import Categories, Notifications, AppVersion
 from .serializer import CategoriesSerializer, ProviderCategoryMappingSerializer, ProvidersTimeSlotSerializer, \
     AppVersionSerializer, NotificationSerializer
 from django.utils.timezone import now
+from common_utils import distance, divideIntoTimeSlots
 
 base_url = "http://35.223.14.120:8000/api"
 
@@ -118,6 +119,7 @@ class FetchAvailableTimeSlot(APIView):
     Fetch Available Time slot filter by provider category, location, morning,evening
      availability will be decided based on number of consumers have bookings ,
      will check the limit
+     10 minutes slot , 5 consumers per slot
     """
     serializer_class = ProvidersTimeSlotSerializer
     permission_classes = ([AllowAny])
@@ -130,11 +132,18 @@ class FetchAvailableTimeSlot(APIView):
             user_related_data = get_queryset(role=2, phone=phone, user_id=user_id)
             provider_time_slots = user_related_data[0].providertimeslots.values()
             # get count of consumers who have booked the slot
-            data_to_send = provider_time_slots
+            data_to_send = []
+            # divide time into 10 time slot
+            for index,slot in enumerate(provider_time_slots,start=0):
+                # print('slot_{}'.format(index), divideIntoTimeSlots(10,slot))
+                data_to_send.append({
+                    "slot_{}".format(index):divideIntoTimeSlots(10,slot)
+                })
             # serialzier = User
             return Response(data={'msg': "Retrieved data", 'success': True, 'data': data_to_send},
                             status=status.HTTP_200_OK)
         except Exception as e:
+            print('err',e.args)
             return Response(data={'msg': "Data not found", 'success': False, 'data': ''},
                             status=status.HTTP_404_NOT_FOUND)
 

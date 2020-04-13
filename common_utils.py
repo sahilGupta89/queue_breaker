@@ -1,4 +1,5 @@
 from math import radians, sin, cos, sqrt, asin
+import datetime
 
 def distance(slat,slon,elat,elon):
     # The math module contains a function named
@@ -20,3 +21,25 @@ def distance(slat,slon,elat,elon):
 
     # calculate the result
     return (c * r)
+
+
+def divideIntoTimeSlots(interval, data_dict):
+    # check the number of slots in given duration
+    start = data_dict['start_time']
+    end = data_dict['end_time']
+    day = data_dict['day']
+    home_delivery = data_dict['home_delivery']
+    timeslot = []
+    while start <= end:
+
+        timeslot.append({
+            "start": start,
+            "end": start + datetime.timedelta(minutes=interval),
+            "day": day,
+            "home_delivery": home_delivery
+        })
+        start = start + datetime.timedelta(minutes=interval)
+
+    return timeslot
+
+

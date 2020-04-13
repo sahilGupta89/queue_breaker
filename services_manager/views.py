@@ -132,13 +132,13 @@ class FetchAvailableTimeSlot(APIView):
             user_related_data = get_queryset(role=2, phone=phone, user_id=user_id)
             provider_time_slots = user_related_data[0].providertimeslots.values()
             # get count of consumers who have booked the slot
-            data_to_send = []
+            data_to_send = provider_time_slots
             # divide time into 10 time slot
-            for index,slot in enumerate(provider_time_slots,start=0):
-                # print('slot_{}'.format(index), divideIntoTimeSlots(10,slot))
-                data_to_send.append({
-                    "slot_{}".format(index):divideIntoTimeSlots(10,slot)
-                })
+            # for index,slot in enumerate(provider_time_slots,start=0):
+            #     # print('slot_{}'.format(index), divideIntoTimeSlots(10,slot))
+            #     data_to_send.append({
+            #         "slot_{}".format(index):divideIntoTimeSlots(10,slot)
+            #     })
             # serialzier = User
             return Response(data={'msg': "Retrieved data", 'success': True, 'data': data_to_send},
                             status=status.HTTP_200_OK)

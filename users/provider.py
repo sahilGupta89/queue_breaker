@@ -6,11 +6,12 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken, Token
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import User, PhoneTokens,Location
+from .models import User, PhoneTokens, Location
 from services_manager.serializer import ProviderCategoryMappingSerializer, ProvidersTimeSlotSerializer
 from .serializer import UserSerializer, PhoneTokensSerializer, UserPhoneSerializer, ProviderSerializer, \
     LocationSerializer
 from .utils import send_otp, verify_user_otp
+from common_utils import distance, divideIntoTimeSlots
 
 
 def get_queryset(phone):
@@ -57,7 +58,7 @@ class ProviderSignup(APIView):
                 try:
                     serializer.save()
                     # save location
-                    location_data =  {
+                    location_data = {
                         "user": serializer.data['id'],
                         # "phone": serializer.data['phone'],
                         "lat": request.data['lat'],
@@ -141,7 +142,10 @@ class GenerateOTP(APIView):
         except Exception as e:
             return Response({'msg': e.args, 'success': False, 'data': ''}, status=status.HTTP_404_NOT_FOUND)
 
-import  json
+
+import json
+
+
 # verfy otp and send signin info
 class ProviderSignin(APIView):
     serializer_class = UserSerializer
@@ -187,18 +191,28 @@ class AddTimeSlot(APIView):
     def post(self, request):
         try:
             working_days = request.data['working_days'].split(',')
-            data_to_save = list()
+
             for day in working_days:
-                data_to_save.append({
+                data_to_save = divideIntoTimeSlots(10, {
                     'provider': request.data['provider_id'],
                     'day': day,
                     'start_time': request.data['start_time'],
                     'end_time': request.data['end_time'],
                     'home_delivery': request.data['home_delivery']
                 })
-            serializer = ProvidersTimeSlotSerializer(data=data_to_save, many=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+                serializer = ProvidersTimeSlotSerializer(data=data_to_save, many=True)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                # data_to_save.append({
+                #     'provider': request.data['provider_id'],
+                #     'day': day,
+                #     'start_time': request.data['start_time'],
+                #     'end_time': request.data['end_time'],
+                #     'home_delivery': request.data['home_delivery']
+                # })
+            # serializer = ProvidersTimeSlotSerializer(data=data_to_save, many=True)
+            # serializer.is_valid(raise_exception=True)
+            # serializer.save()
             return Response(data={'msg': "Data saved", 'success': True, 'data': serializer.data},
                             status=status.HTTP_200_OK)
         except Exception as e:
@@ -215,9 +229,9 @@ class UpdateServiceStatus(APIView):
             service_status = request.data['service_status']
             provider_id = request.data['provider_id']
             phone = request.data['phone']
-            serializer = ProviderSerializer(User.objects.get(id=provider_id),data={
-                'is_active':service_status,
-                'phone':phone
+            serializer = ProviderSerializer(User.objects.get(id=provider_id), data={
+                'is_active': service_status,
+                'phone': phone
             })
             serializer.is_valid(raise_exception=True)
             serializer.save()

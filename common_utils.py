@@ -25,18 +25,19 @@ def distance(slat,slon,elat,elon):
 
 def divideIntoTimeSlots(interval, data_dict):
     # check the number of slots in given duration
-    start = data_dict['start_time']
-    end = data_dict['end_time']
+    start = datetime.datetime.strptime(data_dict['start_time'],'%Y-%m-%d %H:%M:%S.%f%z')
+    end = datetime.datetime.strptime(data_dict['end_time'],'%Y-%m-%d %H:%M:%S.%f%z')
     day = data_dict['day']
-    home_delivery = data_dict['home_delivery']
     timeslot = []
+
     while start < end:
 
         timeslot.append({
-            "start": start,
-            "end": start + datetime.timedelta(minutes=interval),
+            "provider": data_dict['provider'],
+            "start_time": start,
+            "end_time": start + datetime.timedelta(minutes=interval),
             "day": day,
-            "home_delivery": home_delivery
+            'home_delivery': data_dict['home_delivery']
         })
         start = start + datetime.timedelta(minutes=interval)
 

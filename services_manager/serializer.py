@@ -27,6 +27,13 @@ class ProvidersTimeSlotSerializer(serializers.ModelSerializer):
 
 
 class ConsumerTimeSlotMappingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ConsumerTimeSlotMapping
+        fields = "__all__"
+
+
+class ConsumerTimeSlotMappingRelationSerializer(serializers.ModelSerializer):
     consumer = UserSerializer()
     time_slot = ProvidersTimeSlotSerializer()
 

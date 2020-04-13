@@ -53,10 +53,10 @@ class ConsumerTimeSlotMapping(models.Model):
     )
 
     consumer = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False,related_name='consumertimeslots')
-    time_slot = models.ForeignKey(ProvidersTimeSlot, on_delete=models.CASCADE),
     booking_status = models.PositiveSmallIntegerField(choices=booking_status, blank=True, null=True, default=PENDING)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(blank=True, null=True)
+    time_slot = models.ForeignKey(ProvidersTimeSlot,on_delete=models.CASCADE, null=True, blank=True)
     deleted = models.BooleanField(default=False)
 
     def __str__(self):

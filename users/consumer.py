@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate, login
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User, PhoneTokens, Location
 from services_manager.models import ConsumerTimeSlotMapping
-from services_manager.serializer import ConsumerTimeSlotMappingSerializer
+from services_manager.serializer import ConsumerTimeSlotMappingSerializer, ConsumerTimeSlotMappingRelationSerializer
 from .serializer import UserSerializer, PhoneTokensSerializer, UserPhoneSerializer,LocationSerializer
 from .utils import send_otp, verify_user_otp
 
@@ -196,7 +196,7 @@ class FetchBooking(APIView):
             consumer_id = request.query_params['consumer_id']
             # phone = None if "phone" not in request.query_params else request.query_params['phone']
             queryset = ConsumerTimeSlotMapping.objects.select_related('time_slot','consumer').filter(consumer__id__contains=consumer_id)
-            serializer = ConsumerTimeSlotMappingSerializer(queryset, many=True)
+            serializer = ConsumerTimeSlotMappingRelationSerializer(queryset, many=True)
             # user_detail = get_queryset(phone)
 
             return Response(data={'msg': "Retrieved  data", 'success': True, 'data': serializer.data},

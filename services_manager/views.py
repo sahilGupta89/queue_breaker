@@ -82,10 +82,14 @@ class FetchProvidersByCategory(APIView):
             category_id = kwargs['category_id']
 
             queryset = User.objects.filter(providercategorymappings__category__id=category_id)
+            print('length1>>>',len(queryset))
             if len(queryset) != 0:
                 data_to_send = dict()
+                print('length2>>>>', queryset[0])
                 _category = queryset[0].providercategorymappings.filter(category_id=category_id)
+                print('length3>>>>', len(_category))
                 if len(_category) != 0:
+                    print('length4>>>>',_category[0])
                     _category_serializer = CategoriesSerializer(_category[0].category)
                     data_to_send.update({'category': _category_serializer.data})
                     data_to_send['category'].update({
@@ -94,6 +98,7 @@ class FetchProvidersByCategory(APIView):
                     data_to_send.update({'providers': []})
 
                     for d in queryset:
+                        print('location>>>',d.location_set.all()[0])
                         provider_dict = dict()
                         provider_dict.update(UserSerializer(d).data)
                         provider_dict.update({'location': LocationSerializer(d.location_set.all()[0]).data})

@@ -1,5 +1,6 @@
 from math import radians, sin, cos, sqrt, asin
 import datetime
+import requests
 
 def distance(slat,slon,elat,elon):
     # The math module contains a function named
@@ -43,4 +44,17 @@ def divideIntoTimeSlots(interval, data_dict):
 
     return timeslot
 
+
+
+def sendsms(to,msg):
+    url = "https://www.fast2sms.com/dev/bulk"
+    payload = "sender_id=FSTSMS&message={}&language=english&route=p&numbers={}".format(msg,to)
+    print('payload',payload)
+    headers = {
+        'authorization': "ite4PV78TMHLldRvZcBU0CmpsDbqXfYNK65wkoW1hngjuFIES26L4vx3jNYgebmwWlhBpHZifRd0nquQ",
+        'Content-Type': "application/x-www-form-urlencoded",
+        'Cache-Control': "no-cache",
+    }
+    response = requests.request("POST", url, data=payload, headers=headers)
+    return response
 

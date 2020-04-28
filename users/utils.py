@@ -1,7 +1,7 @@
 import random
 from .models import PhoneTokens
 from .serializer import PhoneTokensSerializer
-
+from common_utils import sendsms
 
 def verify_user_otp(phone, otp, user):
     if user and otp:
@@ -30,18 +30,22 @@ def generate_otp():
 
 def send_otp(user):
     otp = generate_otp()
+    msg = "Your OTP is {}".format(otp)
     if PhoneTokens.objects.filter(user=user.id).exists():
         # update
         serializer = PhoneTokensSerializer(PhoneTokens.objects.get(user=user.id),
                                            {'otp': otp, 'otp_sent': True, 'is_verified': False})
         serializer.is_valid()
         serializer.save()
+        sendsms(user.phone, msg)
         return serializer.data
     else:
         serializer = PhoneTokensSerializer(
             data={'otp': otp, 'user': user.id, 'otp_sent': True, 'is_verified': False})
         if serializer.is_valid():
             serializer.save()
+
+            sendsms(user.phone,msg)
             return serializer.data
         else:
             return None

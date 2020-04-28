@@ -14,5 +14,5 @@ urlpatterns = [
             name='category_image-download'),
     path('notification/', UserNotifications.as_view(), name='add_notification'),
     path('appversion/', UserAppVersion.as_view(), name='add_notification'),
-    path('privacy_policy/',TemplateView.as_view(template_name='p'))
+    path('privacy_policy/',TemplateView.as_view(template_name='policy.html'))
 ]
